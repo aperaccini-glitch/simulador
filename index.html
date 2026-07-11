@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simulador de Parcelas - Comauto</title>
+    <!-- Carregamento seguro da biblioteca de PDF -->
+    <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
     <style>
         :root {
             --blue-comauto: #003366;
@@ -119,27 +121,20 @@
         td { padding: 12px; border: 1px solid #ddd; }
         tr:nth-child(even) { background-color: #f9f9f9; }
         
-        .actions-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-top: 15px;
-        }
-        .btn {
+        .btn-pdf {
+            background-color: var(--blue-comauto);
             color: white;
             border: none;
-            padding: 12px 20px;
-            font-size: 14px;
+            padding: 14px 20px;
+            font-size: 15px;
             font-weight: bold;
             border-radius: 4px;
             cursor: pointer;
-            text-align: center;
+            width: 100%;
+            margin-top: 15px;
             transition: background 0.2s;
         }
-        .btn-pdf { background-color: var(--blue-comauto); }
         .btn-pdf:hover { background-color: #002244; }
-        .btn-foto { background-color: #27ae60; }
-        .btn-foto:hover { background-color: #1e8449; }
         
         .no-results { text-align: center; padding: 30px; color: #888; font-style: italic; }
         
@@ -175,6 +170,7 @@
 <body>
 
 <div class="container" id="conteudo-site">
+    <!-- Cabeçalho institucional -->
     <div class="header">
         <div class="logo-area">
             <h1 class="logo">COMAUTO</h1>
@@ -186,10 +182,12 @@
         </div>
     </div>
 
+    <!-- Mensagem de Saudação Personalizada para o Cliente -->
     <div class="cliente-saudacao" id="saudacaoClienteBox">
         Apresentação preparada exclusivamente para: <span id="nomeClientePDF"></span>
     </div>
 
+    <!-- Seção de Filtros -->
     <div class="filter-section" id="area-filtros">
         <div class="filter-grid">
             <div>
@@ -220,12 +218,10 @@
             </div>
         </div>
         
-        <div class="actions-grid">
-            <button class="btn btn-pdf" onclick="exportarNativo('pdf')">📄 Baixar como arquivo PDF</button>
-            <button class="btn btn-foto" onclick="exportarNativo('foto')">📸 Salvar como Foto (Imagem)</button>
-        </div>
+        <button class="btn-pdf" onclick="gerarPDF()">📄 Baixar Apresentação em PDF</button>
     </div>
 
+    <!-- Tabela Dinâmica -->
     <div id="tabela-resultados">
         <table id="tabelaDados">
             <thead>
@@ -238,6 +234,7 @@
         </div>
     </div>
 
+    <!-- Rodapé informativo -->
     <div class="pdf-footer" id="info-pdf">
         <strong>Entenda a modalidade apresentada:</strong><br>
         <span id="texto-explicativo-pdf"></span>
@@ -245,6 +242,7 @@
         <span style="font-style: italic; font-size: 11px;">* Condições de taxas administrativas (15% e 19%) já inclusas no cálculo das parcelas[cite: 1, 2]. Valores de referência de emissão[cite: 1, 2].</span>
     </div>
 
+    <!-- Botão Interativo do WhatsApp (Funciona no PDF) -->
     <div class="pdf-contact" id="contato-pdf">
         <span style="color:#555; font-size:13px;">Gostou dessas opções ou quer ajustar os valores?</span><br>
         <a href="https://wa.me/5514998978444?text=Olá! Gostei das opções da tabela Comauto." class="btn-whatsapp-clicavel" target="_blank">
@@ -254,6 +252,7 @@
 </div>
 
 <script>
+    // Banco de dados integrado baseado nos dados reais enviados[cite: 1, 2]
     const dadosComauto = [
         {grupo: "1647", perfil: "Pessoa Física", prazo: "96 meses", cod: "1693", credito: 75000, linear: 970.92, leve: 501.08}[cite: 1],
         {grupo: "1647", perfil: "Pessoa Física", prazo: "96 meses", cod: "1694", credito: 90000, linear: 1165.10, leve: 601.30}[cite: 1],
@@ -290,7 +289,7 @@
         return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     }
 
-    function atualizarNomeCliente() {
+    function actualizarNomeCliente() {
         const nome = document.getElementById('nomeCliente').value;
         const box = document.getElementById('saudacaoClienteBox');
         if(nome.trim() !== "") {
@@ -354,27 +353,38 @@
         }
     }
 
-    // MÉTODO REFEITO: Impressão Nativa do Navegador (Sem travar downloads)
-    function exportarNativo(tipo) {
-        // Altera layout para o formato de documento impresso
-        document.getElementById('info-pdf').style.display = 'block';
-        document.getElementById('contato-pdf').style.display = 'block';
-        document.getElementById('area-filtros').style.display = 'none';
-        document.body.style.backgroundColor = '#ffffff';
-        document.querySelector('.container').style.boxShadow = 'none';
+    function gerarPDF() {
+        const filtros = document.getElementById('area-filtros');
+        const infoPdf = document.getElementById('info-pdf');
+        const contatoPdf = document.getElementById('contato-pdf');
 
-        // Dispara a janela de impressão nativa do celular/computador
-        // Aqui o usuário pode tanto "Salvar como PDF" quanto "Salvar como Imagem/Print" de forma 100% segura
-        window.print();
+        // Mostra o rodapé e oculta os filtros antes do processamento
+        infoPdf.style.display = 'block';
+        contatoPdf.style.display = 'block';
+        filtros.style.display = 'none';
 
-        // Restaura o site de volta ao normal após fechar a janela de impressão
-        setTimeout(() => {
-            document.getElementById('area-filtros').style.display = 'block';
-            document.getElementById('info-pdf').style.display = 'none';
-            document.getElementById('contato-pdf').style.display = 'none';
-            document.body.style.backgroundColor = '#f4f6f9';
-            document.querySelector('.container').style.boxShadow = '0 4px 15px rgba(0,0,0,0.05)';
-        }, 500);
+        const elemento = document.getElementById('conteudo-site');
+        const nomeCli = document.getElementById('nomeCliente').value.trim() || 'Cliente';
+        
+        const opt = {
+            margin:       15,
+            filename:     `Proposta_Comauto_${nomeCli}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        // Dispara o download nativo do PDF direto para o navegador
+        html2pdf().set(opt).from(elemento).save().then(() => {
+            // Restaura o layout original do site após salvar
+            filtros.style.display = 'block';
+            infoPdf.style.display = 'none';
+            contatoPdf.style.display = 'none';
+        }).catch(err => {
+            console.error("Erro na geração do PDF:", err);
+            // Em caso de qualquer erro, devolve os filtros para a tela
+            filtros.style.display = 'block';
+        });
     }
 
     window.onload = filtrarTabela;
