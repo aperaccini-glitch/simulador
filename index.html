@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simulador de Parcelas - Comauto</title>
-    <!-- Carregamento seguro da biblioteca de PDF -->
-    <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
     <style>
         :root {
             --blue-comauto: #003366;
@@ -139,16 +137,14 @@
         .no-results { text-align: center; padding: 30px; color: #888; font-style: italic; }
         
         .pdf-footer {
-            display: none;
-            margin-top: 30px;
             background: #f8f9fa;
             padding: 15px;
             font-size: 12px;
             border-radius: 4px;
             border-left: 4px solid var(--orange-comauto);
+            margin-top: 30px;
         }
         .pdf-contact {
-            display: none;
             text-align: center;
             margin-top: 35px;
             border-top: 1px dashed #ccc;
@@ -164,6 +160,33 @@
             display: inline-block;
             margin-top: 10px;
             font-size: 13px;
+        }
+
+        /* ==================== REGRAS DO PDF (IMPRESSÃO) ==================== */
+        @media print {
+            body {
+                background-color: #ffffff !important;
+                padding: 0 !important;
+            }
+            .container {
+                box-shadow: none !important;
+                padding: 0 !important;
+                max-width: 100% !important;
+            }
+            #area-filtros {
+                display: none !important; /* ESCONDE OS FILTROS NO PDF */
+            }
+            .btn-whatsapp-clicavel {
+                border: 1px solid #25d366;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            th {
+                background-color: #003366 !important;
+                color: white !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
         }
     </style>
 </head>
@@ -218,7 +241,7 @@
             </div>
         </div>
         
-        <button class="btn-pdf" onclick="gerarPDF()">📄 Baixar Apresentação em PDF</button>
+        <button class="btn-pdf" onclick="window.print()">📄 Gerar e Salvar PDF da Proposta</button>
     </div>
 
     <!-- Tabela Dinâmica -->
@@ -252,7 +275,6 @@
 </div>
 
 <script>
-    // Banco de dados integrado baseado nos dados reais enviados[cite: 1, 2]
     const dadosComauto = [
         {grupo: "1647", perfil: "Pessoa Física", prazo: "96 meses", cod: "1693", credito: 75000, linear: 970.92, leve: 501.08}[cite: 1],
         {grupo: "1647", perfil: "Pessoa Física", prazo: "96 meses", cod: "1694", credito: 90000, linear: 1165.10, leve: 601.30}[cite: 1],
@@ -289,7 +311,7 @@
         return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     }
 
-    function actualizarNomeCliente() {
+    function atualizarNomeCliente() {
         const nome = document.getElementById('nomeCliente').value;
         const box = document.getElementById('saudacaoClienteBox');
         if(nome.trim() !== "") {
@@ -351,40 +373,6 @@
         } else {
             textoExp.innerHTML = "<strong>Parcela Linear (Cheia):</strong> Modalidade convencional estável onde o fundo comum e taxas administrativas diluem-se integralmente ao longo de todo o plano contratado[cite: 1, 2].";
         }
-    }
-
-    function gerarPDF() {
-        const filtros = document.getElementById('area-filtros');
-        const infoPdf = document.getElementById('info-pdf');
-        const contatoPdf = document.getElementById('contato-pdf');
-
-        // Mostra o rodapé e oculta os filtros antes do processamento
-        infoPdf.style.display = 'block';
-        contatoPdf.style.display = 'block';
-        filtros.style.display = 'none';
-
-        const elemento = document.getElementById('conteudo-site');
-        const nomeCli = document.getElementById('nomeCliente').value.trim() || 'Cliente';
-        
-        const opt = {
-            margin:       15,
-            filename:     `Proposta_Comauto_${nomeCli}.pdf`,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-
-        // Dispara o download nativo do PDF direto para o navegador
-        html2pdf().set(opt).from(elemento).save().then(() => {
-            // Restaura o layout original do site após salvar
-            filtros.style.display = 'block';
-            infoPdf.style.display = 'none';
-            contatoPdf.style.display = 'none';
-        }).catch(err => {
-            console.error("Erro na geração do PDF:", err);
-            // Em caso de qualquer erro, devolve os filtros para a tela
-            filtros.style.display = 'block';
-        });
     }
 
     window.onload = filtrarTabela;
