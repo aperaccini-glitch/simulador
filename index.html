@@ -108,10 +108,11 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
+            display: table !important; /* Força a exibição */
         }
         th {
-            background-color: var(--blue-comauto);
-            color: white;
+            background-color: var(--blue-comauto) !important;
+            color: white !important;
             padding: 12px;
             text-align: left;
             border: 1px solid #002244;
@@ -130,9 +131,7 @@
             cursor: pointer;
             width: 100%;
             margin-top: 15px;
-            transition: background 0.2s;
         }
-        .btn-pdf:hover { background-color: #002244; }
         
         .no-results { text-align: center; padding: 30px; color: #888; font-style: italic; }
         
@@ -162,28 +161,19 @@
             font-size: 13px;
         }
 
-        /* ==================== REGRAS DO PDF (IMPRESSÃO) ==================== */
+        /* ==================== CONFIGURAÇÃO DE IMPRESSÃO INFALÍVEL ==================== */
         @media print {
-            body {
-                background-color: #ffffff !important;
-                padding: 0 !important;
-            }
-            .container {
-                box-shadow: none !important;
-                padding: 0 !important;
-                max-width: 100% !important;
-            }
-            #area-filtros {
-                display: none !important; /* ESCONDE OS FILTROS NO PDF */
-            }
-            .btn-whatsapp-clicavel {
-                border: 1px solid #25d366;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
+            body { background-color: #ffffff !important; padding: 0 !important; }
+            .container { box-shadow: none !important; padding: 0 !important; max-width: 100% !important; }
+            #area-filtros { display: none !important; }
+            table { display: table !important; width: 100% !important; }
             th {
                 background-color: #003366 !important;
                 color: white !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            td {
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
@@ -193,7 +183,6 @@
 <body>
 
 <div class="container" id="conteudo-site">
-    <!-- Cabeçalho institucional -->
     <div class="header">
         <div class="logo-area">
             <h1 class="logo">COMAUTO</h1>
@@ -205,12 +194,10 @@
         </div>
     </div>
 
-    <!-- Mensagem de Saudação Personalizada para o Cliente -->
     <div class="cliente-saudacao" id="saudacaoClienteBox">
         Apresentação preparada exclusivamente para: <span id="nomeClientePDF"></span>
     </div>
 
-    <!-- Seção de Filtros -->
     <div class="filter-section" id="area-filtros">
         <div class="filter-grid">
             <div>
@@ -233,18 +220,17 @@
             </div>
             <div>
                 <label>Parcela Mínima (R$)</label>
-                <input type="number" id="parcMin" value="300" oninput="filtrarTabela()">
+                <input type="number" id="parcMin" value="250" oninput="filtrarTabela()">
             </div>
             <div>
                 <label>Parcela Máxima (R$)</label>
-                <input type="number" id="parcMax" value="400" oninput="filtrarTabela()">
+                <input type="number" id="parcMax" value="600" oninput="filtrarTabela()">
             </div>
         </div>
         
         <button class="btn-pdf" onclick="window.print()">📄 Gerar e Salvar PDF da Proposta</button>
     </div>
 
-    <!-- Tabela Dinâmica -->
     <div id="tabela-resultados">
         <table id="tabelaDados">
             <thead>
@@ -257,7 +243,6 @@
         </div>
     </div>
 
-    <!-- Rodapé informativo -->
     <div class="pdf-footer" id="info-pdf">
         <strong>Entenda a modalidade apresentada:</strong><br>
         <span id="texto-explicativo-pdf"></span>
@@ -265,7 +250,6 @@
         <span style="font-style: italic; font-size: 11px;">* Condições de taxas administrativas (15% e 19%) já inclusas no cálculo das parcelas[cite: 1, 2]. Valores de referência de emissão[cite: 1, 2].</span>
     </div>
 
-    <!-- Botão Interativo do WhatsApp (Funciona no PDF) -->
     <div class="pdf-contact" id="contato-pdf">
         <span style="color:#555; font-size:13px;">Gostou dessas opções ou quer ajustar os valores?</span><br>
         <a href="https://wa.me/5514998978444?text=Olá! Gostei das opções da tabela Comauto." class="btn-whatsapp-clicavel" target="_blank">
@@ -329,7 +313,7 @@
         const parcMax = parseFloat(document.getElementById('parcMax').value) || Infinity;
 
         const cabecalho = document.getElementById('cabecalhoTabela');
-        const nomeColunaParcela = modalidade === 'leve' ? 'Parcela Leve (50%)[cite: 1, 2]' : 'Parcela Cheia (100%)[cite: 1, 2]';
+        const nomeColunaParcela = modalidade === 'leve' ? 'Parcela Leve (50%)' : 'Parcela Cheia (100%)';
         
         cabecalho.innerHTML = `
             <th style="text-align: center; width: 80px;">Código</th>
@@ -369,9 +353,9 @@
 
         const textoExp = document.getElementById('texto-explicativo-pdf');
         if (modalidade === 'leve') {
-            textoExp.innerHTML = "<strong>Parcela Leve (50%):</strong> Esta modalidade permite amortizar o investimento pagando apenas metade do valor linear estimado nas parcelas iniciais até a contemplação do bem[cite: 1, 2].";
+            textoExp.innerHTML = "<strong>Parcela Leve (50%):</strong> Esta modalidade permite amortizar o investimento pagando apenas metade do valor linear estimado nas parcelas iniciais até a contemplação do bem.";
         } else {
-            textoExp.innerHTML = "<strong>Parcela Linear (Cheia):</strong> Modalidade convencional estável onde o fundo comum e taxas administrativas diluem-se integralmente ao longo de todo o plano contratado[cite: 1, 2].";
+            textoExp.innerHTML = "<strong>Parcela Linear (Cheia):</strong> Modalidade convencional estável onde o fundo comum e taxas administrativas diluem-se integralmente ao longo de todo o plano contratado.";
         }
     }
 
