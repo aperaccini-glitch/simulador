@@ -4,9 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simulador de Parcelas - Comauto</title>
-    <!-- Bibliotecas para gerar PDF e Imagem direto no navegador -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
             --blue-comauto: #003366;
@@ -172,14 +169,12 @@
             display: inline-block;
             margin-top: 10px;
             font-size: 13px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
     </style>
 </head>
 <body>
 
 <div class="container" id="conteudo-site">
-    <!-- Cabeçalho institucional -->
     <div class="header">
         <div class="logo-area">
             <h1 class="logo">COMAUTO</h1>
@@ -191,12 +186,10 @@
         </div>
     </div>
 
-    <!-- Mensagem de Saudação Personalizada para o Cliente -->
     <div class="cliente-saudacao" id="saudacaoClienteBox">
         Apresentação preparada exclusivamente para: <span id="nomeClientePDF"></span>
     </div>
 
-    <!-- Seção de Filtros (Ocultada na exportação) -->
     <div class="filter-section" id="area-filtros">
         <div class="filter-grid">
             <div>
@@ -228,12 +221,11 @@
         </div>
         
         <div class="actions-grid">
-            <button class="btn btn-pdf" onclick="gerarPDF()">📄 Baixar como arquivo PDF</button>
-            <button class="btn btn-foto" onclick="gerarFoto()">📸 Salvar como Foto (Imagem)</button>
+            <button class="btn btn-pdf" onclick="exportarNativo('pdf')">📄 Baixar como arquivo PDF</button>
+            <button class="btn btn-foto" onclick="exportarNativo('foto')">📸 Salvar como Foto (Imagem)</button>
         </div>
     </div>
 
-    <!-- Tabela Dinâmica -->
     <div id="tabela-resultados">
         <table id="tabelaDados">
             <thead>
@@ -246,7 +238,6 @@
         </div>
     </div>
 
-    <!-- Rodapé informativo -->
     <div class="pdf-footer" id="info-pdf">
         <strong>Entenda a modalidade apresentada:</strong><br>
         <span id="texto-explicativo-pdf"></span>
@@ -254,17 +245,15 @@
         <span style="font-style: italic; font-size: 11px;">* Condições de taxas administrativas (15% e 19%) já inclusas no cálculo das parcelas[cite: 1, 2]. Valores de referência de emissão[cite: 1, 2].</span>
     </div>
 
-    <!-- Botão Interativo do WhatsApp (Funciona no PDF) -->
     <div class="pdf-contact" id="contato-pdf">
         <span style="color:#555; font-size:13px;">Gostou dessas opções ou quer ajustar os valores?</span><br>
-        <a href="https://wa.me/5514998978444?text=Olá! Gostei das opções da tabela Comauto e quero dar andamento." class="btn-whatsapp-clicavel" target="_blank">
+        <a href="https://wa.me/5514998978444?text=Olá! Gostei das opções da tabela Comauto." class="btn-whatsapp-clicavel" target="_blank">
             💬 Clique Aqui para Falar Comigo no WhatsApp
         </a>
     </div>
 </div>
 
 <script>
-    // Banco de dados integrado baseado nos dados reais enviados[cite: 1, 2]
     const dadosComauto = [
         {grupo: "1647", perfil: "Pessoa Física", prazo: "96 meses", cod: "1693", credito: 75000, linear: 970.92, leve: 501.08}[cite: 1],
         {grupo: "1647", perfil: "Pessoa Física", prazo: "96 meses", cod: "1694", credito: 90000, linear: 1165.10, leve: 601.30}[cite: 1],
@@ -365,48 +354,27 @@
         }
     }
 
-    function prepararLayoutImpressao() {
+    // MÉTODO REFEITO: Impressão Nativa do Navegador (Sem travar downloads)
+    function exportarNativo(tipo) {
+        // Altera layout para o formato de documento impresso
         document.getElementById('info-pdf').style.display = 'block';
         document.getElementById('contato-pdf').style.display = 'block';
         document.getElementById('area-filtros').style.display = 'none';
-    }
+        document.body.style.backgroundColor = '#ffffff';
+        document.querySelector('.container').style.boxShadow = 'none';
 
-    function restaurarLayoutOriginal() {
-        document.getElementById('area-filtros').style.display = 'block';
-        document.getElementById('info-pdf').style.none;
-        document.getElementById('contato-pdf').style.display = 'none';
-    }
+        // Dispara a janela de impressão nativa do celular/computador
+        // Aqui o usuário pode tanto "Salvar como PDF" quanto "Salvar como Imagem/Print" de forma 100% segura
+        window.print();
 
-    function gerarPDF() {
-        prepararLayoutImpressao();
-        const elemento = document.getElementById('conteudo-site');
-        const nomeCli = document.getElementById('nomeCliente').value.trim() || 'Cliente';
-        const opt = {
-            margin:       15,
-            filename:     `Proposta_Comauto_${nomeCli}.pdf`,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2 },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-
-        html2pdf().set(opt).from(elemento).save().then(() => {
-            restaurarLayoutOriginal();
-        });
-    }
-
-    function gerarFoto() {
-        prepararLayoutImpressao();
-        const elemento = document.getElementById('conteudo-site');
-        const nomeCli = document.getElementById('nomeCliente').value.trim() || 'Cliente';
-
-        // Captura a tabela como uma imagem nítida
-        html2canvas(elemento, { scale: 2, backgroundColor: "#ffffff" }).then(canvas => {
-            const link = document.createElement('a');
-            link.download = `Proposta_Comauto_${nomeCli}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-            restaurarLayoutOriginal();
-        });
+        // Restaura o site de volta ao normal após fechar a janela de impressão
+        setTimeout(() => {
+            document.getElementById('area-filtros').style.display = 'block';
+            document.getElementById('info-pdf').style.display = 'none';
+            document.getElementById('contato-pdf').style.display = 'none';
+            document.body.style.backgroundColor = '#f4f6f9';
+            document.querySelector('.container').style.boxShadow = '0 4px 15px rgba(0,0,0,0.05)';
+        }, 500);
     }
 
     window.onload = filtrarTabela;
