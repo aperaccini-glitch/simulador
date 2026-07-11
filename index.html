@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Parcelas - Comauto</title>
+    <!-- Bibliotecas para gerar PDF e Imagem direto no navegador -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --blue-comauto: #003366;
+            --orange-comauto: #e67e22;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .header {
+            border-bottom: 3px solid var(--blue-comauto);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo-area .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--blue-comauto);
+            margin: 0;
+        }
+        .logo-area .sub {
+            font-size: 11px;
+            color: var(--orange-comauto);
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 0;
+        }
+        .header .title {
+            font-size: 16px;
+            color: #555;
+            text-align: right;
+        }
+        .filter-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 25px;
+            border: 1px solid #e9ecef;
+        }
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        label {
+            font-size: 12px;
+            font-weight: bold;
+            color: #555;
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 5px;
+        }
+        .radio-group label {
+            font-weight: normal;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+        .radio-group input { width: auto; }
+        
+        .cliente-saudacao {
+            font-size: 15px;
+            background-color: #e3f2fd;
+            color: #0d47a1;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th {
+            background-color: var(--blue-comauto);
+            color: white;
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #002244;
+        }
+        td { padding: 12px; border: 1px solid #ddd; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        
+        .actions-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .btn {
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+            transition: background 0.2s;
+        }
+        .btn-pdf { background-color: var(--blue-comauto); }
+        .btn-pdf:hover { background-color: #002244; }
+        .btn-foto { background-color: #27ae60; }
+        .btn-foto:hover { background-color: #1e8449; }
+        
+        .no-results { text-align: center; padding: 30px; color: #888; font-style: italic; }
+        
+        .pdf-footer {
+            display: none;
+            margin-top: 30px;
+            background: #f8f9fa;
+            padding: 15px;
+            font-size: 12px;
+            border-radius: 4px;
+            border-left: 4px solid var(--orange-comauto);
+        }
+        .pdf-contact {
+            display: none;
+            text-align: center;
+            margin-top: 35px;
+            border-top: 1px dashed #ccc;
+            padding-top: 25px;
+        }
+        .btn-whatsapp-clicavel {
+            background-color: #25d366;
+            color: white !important;
+            text-decoration: none;
+            padding: 10px 25px;
+            border-radius: 30px;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 10px;
+            font-size: 13px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="conteudo-site">
+    <!-- Cabeçalho institucional -->
+    <div class="header">
+        <div class="logo-area">
+            <h1 class="logo">COMAUTO</h1>
+            <p class="sub">Consórcio • Planejando suas conquistas</p>
+        </div>
+        <div class="title">
+            <strong>Estudo de Parcelas Personalizado</strong><br>
+            <span style="font-size: 12px; color: #888;">Tabela: Junho / Julho 2.026</span>
+        </div>
+    </div>
+
+    <!-- Mensagem de Saudação Personalizada para o Cliente -->
+    <div class="cliente-saudacao" id="saudacaoClienteBox">
+        Apresentação preparada exclusivamente para: <span id="nomeClientePDF"></span>
+    </div>
+
+    <!-- Seção de Filtros (Ocultada na exportação) -->
+    <div class="filter-section" id="area-filtros">
+        <div class="filter-grid">
+            <div>
+                <label>Nome do Cliente</label>
+                <input type="text" id="nomeCliente" placeholder="Ex: João Silva" oninput="atualizarNomeCliente()">
+            </div>
+            <div>
+                <label>Modalidade de Parcela</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="modalidade" value="leve" checked onchange="filtrarTabela()"> Parcela Leve (50%)[cite: 1, 2]</label>
+                    <label><input type="radio" name="modalidade" value="linear" onchange="filtrarTabela()"> Parcela Cheia (100%)[cite: 1, 2]</label>
+                </div>
+            </div>
+            <div>
+                <label>Perfil do Cliente</label>
+                <select id="perfil" onchange="filtrarTabela()">
+                    <option value="Pessoa Física">Pessoa Física[cite: 1, 2]</option>
+                    <option value="Pessoa Jurídica">Pessoa Jurídica[cite: 1, 2]</option>
+                </select>
+            </div>
+            <div>
+                <label>Parcela Mínima (R$)</label>
+                <input type="number" id="parcMin" value="300" oninput="filtrarTabela()">
+            </div>
+            <div>
+                <label>Parcela Máxima (R$)</label>
+                <input type="number" id="parcMax" value="400" oninput="filtrarTabela()">
+            </div>
+        </div>
+        
+        <div class="actions-grid">
+            <button class="btn btn-pdf" onclick="gerarPDF()">📄 Baixar como arquivo PDF</button>
+            <button class="btn btn-foto" onclick="gerarFoto()">📸 Salvar como Foto (Imagem)</button>
+        </div>
+    </div>
+
+    <!-- Tabela Dinâmica -->
+    <div id="tabela-resultados">
+        <table id="tabelaDados">
+            <thead>
+                <tr id="cabecalhoTabela"></tr>
+            </thead>
+            <tbody id="corpoTabela"></tbody>
+        </table>
+        <div id="mensagemVazia" class="no-results" style="display: none;">
+            Nenhum plano disponível atende a esta faixa de preço selecionada.
+        </div>
+    </div>
+
+    <!-- Rodapé informativo -->
+    <div class="pdf-footer" id="info-pdf">
+        <strong>Entenda a modalidade apresentada:</strong><br>
+        <span id="texto-explicativo-pdf"></span>
+        <br><br>
+        <span style="font-style: italic; font-size: 11px;">* Condições de taxas administrativas (15% e 19%) já inclusas no cálculo das parcelas[cite: 1, 2]. Valores de referência de emissão[cite: 1, 2].</span>
+    </div>
+
+    <!-- Botão Interativo do WhatsApp (Funciona no PDF) -->
+    <div class="pdf-contact" id="contato-pdf">
+        <span style="color:#555; font-size:13px;">Gostou dessas opções ou quer ajustar os valores?</span><br>
+        <a href="https://wa.me/5514998978444?text=Olá! Gostei das opções da tabela Comauto e quero dar andamento." class="btn-whatsapp-clicavel" target="_blank">
+            💬 Clique Aqui para Falar Comigo no WhatsApp
+        </a>
+    </div>
+</div>
+
+<script>
+    // Banco de dados integrado baseado nos dados reais enviados[cite: 1, 2]
+    const dadosComauto = [
+        {grupo: "1647", perfil: "Pessoa Física", prazo: "96 meses", cod: "1693", credito: 75000, linear: 970.92, leve: 501.08}[cite: 1],
+        {grupo: "1647", perfil: "Pessoa Física", prazo: "96 meses", cod: "1694", credito: 90000, linear: 1165.10, leve: 601.30}[cite: 1],
+        {grupo: "1647", perfil: "Pessoa Física", prazo: "96 meses", cod: "1695", credito: 105000, linear: 1359.28, leve: 701.52}[cite: 1],
+        {grupo: "1647", perfil: "Pessoa Física", prazo: "96 meses", cod: "1696", credito: 120000, linear: 1553.47, leve: 801.73}[cite: 1],
+        {grupo: "1647", perfil: "Pessoa Física", prazo: "96 meses", cod: "1697", credito: 135000, linear: 1747.65, leve: 901.95}[cite: 1],
+        {grupo: "1647", perfil: "Pessoa Física", prazo: "96 meses", cod: "1698", credito: 150000, linear: 1941.83, leve: 1002.17}[cite: 1],
+        
+        {grupo: "1647", perfil: "Pessoa Jurídica", prazo: "96 meses", cod: "1693", credito: 75000, linear: 898.47, leve: 464.86}[cite: 1],
+        {grupo: "1647", perfil: "Pessoa Jurídica", prazo: "96 meses", cod: "1694", credito: 90000, linear: 1078.16, leve: 557.83}[cite: 1],
+        {grupo: "1647", perfil: "Pessoa Jurídica", prazo: "96 meses", cod: "1695", credito: 105000, linear: 1257.85, leve: 650.80}[cite: 1],
+        {grupo: "1647", perfil: "Pessoa Jurídica", prazo: "96 meses", cod: "1696", credito: 120000, linear: 1437.55, leve: 743.77}[cite: 1],
+        {grupo: "1647", perfil: "Pessoa Jurídica", prazo: "96 meses", cod: "1697", credito: 135000, linear: 1617.24, leve: 836.75}[cite: 1],
+        {grupo: "1647", perfil: "Pessoa Jurídica", prazo: "96 meses", cod: "1698", credito: 150000, linear: 1796.93, leve: 929.72}[cite: 1],
+
+        {grupo: "1648", perfil: "Pessoa Física", prazo: "70 meses", cod: "1699", credito: 30000, linear: 521.85, leve: 269.50}[cite: 2],
+        {grupo: "1648", perfil: "Pessoa Física", prazo: "70 meses", cod: "1700", credito: 35000, linear: 608.82, leve: 314.41}[cite: 2],
+        {grupo: "1648", perfil: "Pessoa Física", prazo: "70 meses", cod: "1701", credito: 40000, linear: 695.80, leve: 359.33}[cite: 2],
+        {grupo: "1648", perfil: "Pessoa Física", prazo: "70 meses", cod: "1702", credito: 45000, linear: 782.77, leve: 404.24}[cite: 2],
+        {grupo: "1648", perfil: "Pessoa Física", prazo: "70 meses", cod: "1703", credito: 50000, linear: 869.75, leve: 449.16}[cite: 2],
+        {grupo: "1648", perfil: "Pessoa Física", prazo: "70 meses", cod: "1704", credito: 55000, linear: 956.72, leve: 494.07}[cite: 2],
+        {grupo: "1648", perfil: "Pessoa Física", prazo: "70 meses", cod: "1705", credito: 60000, linear: 1043.69, leve: 538.99}[cite: 2],
+
+        {grupo: "1648", perfil: "Pessoa Jurídica", prazo: "70 meses", cod: "1699", credito: 30000, linear: 492.87, leve: 255.01}[cite: 2],
+        {grupo: "1648", perfil: "Pessoa Jurídica", prazo: "70 meses", cod: "1700", credito: 35000, linear: 575.01, leve: 297.51}[cite: 2],
+        {grupo: "1648", perfil: "Pessoa Jurídica", prazo: "70 meses", cod: "1701", credito: 40000, linear: 657.16, leve: 340.01}[cite: 2],
+        {grupo: "1648", perfil: "Pessoa Jurídica", prazo: "70 meses", cod: "1702", credito: 45000, linear: 739.30, leve: 382.51}[cite: 2],
+        {grupo: "1648", perfil: "Pessoa Jurídica", prazo: "70 meses", cod: "1703", credito: 50000, linear: 821.45, leve: 425.01}[cite: 2],
+        {grupo: "1648", perfil: "Pessoa Jurídica", prazo: "70 meses", cod: "1704", credito: 55000, linear: 903.59, leve: 467.51}[cite: 2],
+        {grupo: "1648", perfil: "Pessoa Jurídica", prazo: "70 meses", cod: "1705", credito: 60000, linear: 985.73, leve: 510.01}[cite: 2]
+    ];
+
+    function formatarMoeda(valor) {
+        return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    function atualizarNomeCliente() {
+        const nome = document.getElementById('nomeCliente').value;
+        const box = document.getElementById('saudacaoClienteBox');
+        if(nome.trim() !== "") {
+            document.getElementById('nomeClientePDF').innerText = nome;
+            box.style.display = 'block';
+        } else {
+            box.style.display = 'none';
+        }
+    }
+
+    function filtrarTabela() {
+        const modalidade = document.querySelector('input[name="modalidade"]:checked').value;
+        const perfil = document.getElementById('perfil').value;
+        const parcMin = parseFloat(document.getElementById('parcMin').value) || 0;
+        const parcMax = parseFloat(document.getElementById('parcMax').value) || Infinity;
+
+        const cabecalho = document.getElementById('cabecalhoTabela');
+        const nomeColunaParcela = modalidade === 'leve' ? 'Parcela Leve (50%)[cite: 1, 2]' : 'Parcela Cheia (100%)[cite: 1, 2]';
+        
+        cabecalho.innerHTML = `
+            <th style="text-align: center; width: 80px;">Código</th>
+            <th>Grupo / Categoria</th>
+            <th style="text-align: center; width: 100px;">Prazo</th>
+            <th style="text-align: right;">Valor do Crédito</th>
+            <th style="text-align: right;">${nomeColunaParcela}</th>
+        `;
+
+        const corpo = document.getElementById('corpoTabela');
+        corpo.innerHTML = '';
+
+        const dadosFiltrados = dadosComauto.filter(item => {
+            const valorParcela = item[modalidade];
+            return item.perfil === perfil && valorParcela >= parcMin && valorParcela <= parcMax;
+        });
+
+        if (dadosFiltrados.length === 0) {
+            document.getElementById('tabelaDados').style.display = 'none';
+            document.getElementById('mensagemVazia').style.display = 'block';
+        } else {
+            document.getElementById('tabelaDados').style.display = 'table';
+            document.getElementById('mensagemVazia').style.display = 'none';
+
+            dadosFiltrados.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="text-align: center;">${item.cod}</td>
+                    <td>Grupo ${item.grupo} - ${item.perfil}</td>
+                    <td style="text-align: center;">${item.prazo}</td>
+                    <td style="text-align: right; font-weight: bold;">${formatarMoeda(item.credito)}</td>
+                    <td style="text-align: right; font-weight: bold; color: #003366;">${formatarMoeda(item[modalidade])}</td>
+                `;
+                corpo.appendChild(tr);
+            });
+        }
+
+        const textoExp = document.getElementById('texto-explicativo-pdf');
+        if (modalidade === 'leve') {
+            textoExp.innerHTML = "<strong>Parcela Leve (50%):</strong> Esta modalidade permite amortizar o investimento pagando apenas metade do valor linear estimado nas parcelas iniciais até a contemplação do bem[cite: 1, 2].";
+        } else {
+            textoExp.innerHTML = "<strong>Parcela Linear (Cheia):</strong> Modalidade convencional estável onde o fundo comum e taxas administrativas diluem-se integralmente ao longo de todo o plano contratado[cite: 1, 2].";
+        }
+    }
+
+    function prepararLayoutImpressao() {
+        document.getElementById('info-pdf').style.display = 'block';
+        document.getElementById('contato-pdf').style.display = 'block';
+        document.getElementById('area-filtros').style.display = 'none';
+    }
+
+    function restaurarLayoutOriginal() {
+        document.getElementById('area-filtros').style.display = 'block';
+        document.getElementById('info-pdf').style.none;
+        document.getElementById('contato-pdf').style.display = 'none';
+    }
+
+    function gerarPDF() {
+        prepararLayoutImpressao();
+        const elemento = document.getElementById('conteudo-site');
+        const nomeCli = document.getElementById('nomeCliente').value.trim() || 'Cliente';
+        const opt = {
+            margin:       15,
+            filename:     `Proposta_Comauto_${nomeCli}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2 },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(elemento).save().then(() => {
+            restaurarLayoutOriginal();
+        });
+    }
+
+    function gerarFoto() {
+        prepararLayoutImpressao();
+        const elemento = document.getElementById('conteudo-site');
+        const nomeCli = document.getElementById('nomeCliente').value.trim() || 'Cliente';
+
+        // Captura a tabela como uma imagem nítida
+        html2canvas(elemento, { scale: 2, backgroundColor: "#ffffff" }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `Proposta_Comauto_${nomeCli}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            restaurarLayoutOriginal();
+        });
+    }
+
+    window.onload = filtrarTabela;
+</script>
+
+</body>
+</html>
