@@ -108,7 +108,6 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
-            display: table !important; /* Força a exibição */
         }
         th {
             background-color: var(--blue-comauto) !important;
@@ -161,19 +160,19 @@
             font-size: 13px;
         }
 
-        /* ==================== CONFIGURAÇÃO DE IMPRESSÃO INFALÍVEL ==================== */
+        /* ==================== AJUSTES EXCLUSIVOS DE IMPRESSÃO ==================== */
         @media print {
             body { background-color: #ffffff !important; padding: 0 !important; }
             .container { box-shadow: none !important; padding: 0 !important; max-width: 100% !important; }
             #area-filtros { display: none !important; }
-            table { display: table !important; width: 100% !important; }
+            table, tr, td, th { display: table !important; }
             th {
                 background-color: #003366 !important;
                 color: white !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
-            td {
+            td, tr {
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
@@ -234,9 +233,17 @@
     <div id="tabela-resultados">
         <table id="tabelaDados">
             <thead>
-                <tr id="cabecalhoTabela"></tr>
+                <tr>
+                    <th style="text-align: center; width: 80px;">Código</th>
+                    <th>Grupo / Categoria</th>
+                    <th style="text-align: center; width: 100px;">Prazo</th>
+                    <th style="text-align: right;">Valor do Crédito</th>
+                    <th style="text-align: right;" id="colunaDinamicaNome">Valor da Parcela</th>
+                </tr>
             </thead>
-            <tbody id="corpoTabela"></tbody>
+            <tbody id="corpoTabela">
+                <!-- As linhas fixas entram aqui pelo JavaScript de forma estável -->
+            </tbody>
         </table>
         <div id="mensagemVazia" class="no-results" style="display: none;">
             Nenhum plano disponível atende a esta faixa de preço selecionada.
@@ -312,16 +319,9 @@
         const parcMin = parseFloat(document.getElementById('parcMin').value) || 0;
         const parcMax = parseFloat(document.getElementById('parcMax').value) || Infinity;
 
-        const cabecalho = document.getElementById('cabecalhoTabela');
-        const nomeColunaParcela = modalidade === 'leve' ? 'Parcela Leve (50%)' : 'Parcela Cheia (100%)';
-        
-        cabecalho.innerHTML = `
-            <th style="text-align: center; width: 80px;">Código</th>
-            <th>Grupo / Categoria</th>
-            <th style="text-align: center; width: 100px;">Prazo</th>
-            <th style="text-align: right;">Valor do Crédito</th>
-            <th style="text-align: right;">${nomeColunaParcela}</th>
-        `;
+        // Modifica apenas o texto do título da coluna, preservando a tabela intacta
+        const colunaNome = document.getElementById('colunaDinamicaNome');
+        colunaNome.innerText = modalidade === 'leve' ? 'Parcela Leve (50%)' : 'Parcela Cheia (100%)';
 
         const corpo = document.getElementById('corpoTabela');
         corpo.innerHTML = '';
@@ -353,9 +353,9 @@
 
         const textoExp = document.getElementById('texto-explicativo-pdf');
         if (modalidade === 'leve') {
-            textoExp.innerHTML = "<strong>Parcela Leve (50%):</strong> Esta modalidade permite amortizar o investimento pagando apenas metade do valor linear estimado nas parcelas iniciais até a contemplação do bem.";
+            textoExp.innerHTML = "<strong>Parcela Leve (50%):</strong> Esta modalidade permite amortizar o investimento pagando apenas metade do valor linear estimado nas parcelas iniciais até a contemplação do bem[cite: 1, 2].";
         } else {
-            textoExp.innerHTML = "<strong>Parcela Linear (Cheia):</strong> Modalidade convencional estável onde o fundo comum e taxas administrativas diluem-se integralmente ao longo de todo o plano contratado.";
+            textoExp.innerHTML = "<strong>Parcela Linear (Cheia):</strong> Modalidade convencional estável onde o fundo comum e taxas administrativas diluem-se integralmente ao longo de todo o plano contratado[cite: 1, 2].";
         }
     }
 
